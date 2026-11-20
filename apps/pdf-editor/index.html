@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PDF編集ソフト</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="style.css">
+<!-- pdf.js（表示用, UMDビルド）と pdf-lib（書き出し用）をCDNから読み込む -->
+<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+</head>
+<body>
+<header id="toolbar">
+  <div class="group">
+    <label class="btn primary" title="PDFを開く（現在の内容は破棄）">開く
+      <input type="file" id="fileOpen" accept="application/pdf,.pdf" hidden>
+    </label>
+    <label class="btn" title="PDFを末尾に追加（結合）">PDFを追加
+      <input type="file" id="fileAppend" accept="application/pdf,.pdf" multiple hidden>
+    </label>
+    <button class="btn primary" id="btnSave" disabled>PDFを保存</button>
+  </div>
+  <div class="group" id="toolGroup">
+    <button class="btn tool active" data-tool="select" title="選択・移動 (V)">選択</button>
+    <button class="btn tool" data-tool="text" title="クリックした位置にテキストを追加 (T)">テキスト</button>
+    <button class="btn tool" data-tool="whiteout" title="ドラッグで白塗り矩形 (W)">白塗り</button>
+    <button class="btn tool" data-tool="highlight" title="ドラッグで半透明ハイライト (H)">ハイライト</button>
+    <button class="btn tool" data-tool="pen" title="フリーハンド描画 (P)">ペン</button>
+    <label class="btn" title="PNG/JPEG画像をページに配置">画像
+      <input type="file" id="fileImage" accept="image/png,image/jpeg" hidden>
+    </label>
+  </div>
+  <div class="group">
+    <button class="btn" id="zoomOut" title="縮小">－</button>
+    <span id="zoomLabel">100%</span>
+    <button class="btn" id="zoomIn" title="拡大">＋</button>
+    <button class="btn" id="zoomFit" title="幅に合わせる">幅に合わせる</button>
+  </div>
+</header>
+
+<div id="main">
+  <aside id="sidebar">
+    <div class="side-head">
+      <span>ページ</span>
+      <span id="pageCount"></span>
+    </div>
+    <div class="side-actions">
+      <button class="btn small" id="btnRotL" title="選択ページを左に90度回転">⟲ 左回転</button>
+      <button class="btn small" id="btnRotR" title="選択ページを右に90度回転">⟳ 右回転</button>
+      <button class="btn small danger" id="btnDelPages" title="選択ページを削除">削除</button>
+      <button class="btn small" id="btnExtract" title="選択ページだけを別PDFとして保存">選択ページを抽出</button>
+      <button class="btn small" id="btnSelAll">全選択</button>
+    </div>
+    <p class="hint">クリックで表示／Ctrl・Shift+クリックで複数選択／ドラッグで並べ替え</p>
+    <div id="thumbs"></div>
+  </aside>
+
+  <section id="viewer">
+    <div id="dropHint">
+      <p>ここにPDFをドラッグ＆ドロップ<br>または「開く」からファイルを選択</p>
+    </div>
+    <div id="pageWrap" hidden>
+      <canvas id="pageCanvas"></canvas>
+      <div id="overlay"></div>
+    </div>
+  </section>
+
+  <aside id="props">
+    <h3>プロパティ</h3>
+    <div id="propsDefault">
+      <label>テキストの文字サイズ(pt)
+        <input type="number" id="defFontSize" value="16" min="4" max="300">
+      </label>
+      <label>テキスト色 <input type="color" id="defTextColor" value="#000000"></label>
+      <label>ハイライト色 <input type="color" id="defHlColor" value="#ffff00"></label>
+      <label>ペン色 <input type="color" id="defPenColor" value="#ff0000"></label>
+      <label>ペンの太さ(pt)
+        <input type="number" id="defPenWidth" value="2" min="0.5" max="50" step="0.5">
+      </label>
+      <p class="hint">要素を選択すると、その要素の設定を変更できます。Delete キーで削除。</p>
+    </div>
+    <div id="propsElement" hidden>
+      <p id="propsType"></p>
+      <div data-for="text">
+        <label>テキスト<textarea id="pText" rows="4"></textarea></label>
+        <label>文字サイズ(pt) <input type="number" id="pFontSize" min="4" max="300"></label>
+      </div>
+      <div data-for="text highlight pen">
+        <label>色 <input type="color" id="pColor"></label>
+      </div>
+      <div data-for="pen">
+        <label>太さ(pt) <input type="number" id="pWidth" min="0.5" max="50" step="0.5"></label>
+      </div>
+      <button class="btn danger" id="btnDelEl">この要素を削除</button>
+    </div>
+  </aside>
+</div>
+
+<div id="busy" hidden><div class="busy-box" id="busyMsg">処理中…</div></div>
+<div id="toast" hidden></div>
+
+<script src="app.js"></script>
+</body>
+</html>
